@@ -31,5 +31,7 @@ if (newVersion === false) {
     }
 
     newVersion = replacer(newVersion);
+} else {
+    git.commit(newVersion);
 }
-git.update(newVersion);
+git.tag(newVersion);
