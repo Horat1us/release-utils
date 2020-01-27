@@ -8,8 +8,13 @@ export function read() {
     return version.regExp.test(lastTag) && lastTag || false;
 }
 
-export function commit(version) {
-    execSync(`git commit -am 'Release ${version}'`, { stdio: "inherit" });
+export function commit(version, message) {
+    if (!message) {
+        message = message = `Release ${version}`;
+    } else {
+        message = `[${version}] ${message}`;
+    }
+    execSync(`git commit -am '${message}'`, { stdio: "inherit" });
 }
 
 export function tag(version) {

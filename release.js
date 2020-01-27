@@ -32,6 +32,7 @@ if (newVersion === false) {
 
     newVersion = replacer(newVersion);
 } else {
-    git.commit(newVersion);
+    const message = process.argv.slice(3).join(' ').trim();
+    git.commit(newVersion, message);
 }
 git.tag(newVersion);
