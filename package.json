@@ -1,10 +1,12 @@
 {
   "name": "@horat1us/release-utils",
-  "version": "1.0.2",
+  "version": "2.0.1",
   "description": "",
+  "type": "module",
   "main": "./release.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./release.js"
   },
   "repository": {
     "type": "git",
