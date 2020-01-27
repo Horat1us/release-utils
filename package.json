@@ -1,0 +1,22 @@
+{
+  "name": "@horat1us/release-utils",
+  "version": "1.0.2",
+  "description": "",
+  "main": "./release.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Horat1us/release-utils.git"
+  },
+  "author": "Alexander Letnikow",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Horat1us/release-utils/issues"
+  },
+  "homepage": "https://github.com/Horat1us/release-utils#readme",
+  "bin": {
+    "release": "./release.js"
+  }
+}
