@@ -1,6 +1,6 @@
 {
   "name": "@horat1us/release-utils",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "",
   "type": "module",
   "main": "./release.js",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Horat1us/release-utils#readme",
   "bin": {
-    "release": "./release.js"
+    "release": "./release.js",
+    "docker-build-nginx": "./docker-build-nginx.sh"
   }
 }
