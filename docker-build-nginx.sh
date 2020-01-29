@@ -9,7 +9,7 @@ if [[ -n $CODEBUILD_BUILD_ID ]]; then
     DOCKER_LOGIN=$(aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION-"eu-central-1"} 2>/dev/null);
     $DOCKER_LOGIN 2>/dev/null;
     DOCKER_REGISTRY=$(echo $DOCKER_LOGIN | sed -e 's/.*https:\/\///');
-    IMAGE_TAG=${IMAGE_TAG-${CODEBUILD_BUILD_ID-latest}}
+    IMAGE_TAG=${IMAGE_TAG-${CODEBUILD_BUILD_NUMBER-latest}}
 else
     DOCKER_REGISTRY=docker.io
     IMAGE_TAG=${IMAGE_TAG-$(jq -r '.version' ./package.json 2>/dev/null)}
