@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if ! [[ -n $CODEBUILD_BUILD_ID ]]; then
+if [[ -n $CODEBUILD_BUILD_ID ]]; then
     set -e;
 
     DOCKER_LOGIN=$(aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION-"eu-central-1"} 2>/dev/null);
