@@ -19,10 +19,9 @@ set -ex;
 
 DOCKER_IMAGE="${DOCKER_REGISTRY}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
 docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
-FROM flashspys/nginx-static:latest
-COPY . /static
-RUN sed -i 's/gzip/server_tokens off\; gzip/g' /etc/nginx/nginx.conf && \
-    sed -i "s/index/try_files\ \\\$uri\ \\\$uri\\/\ \\/index.html\;index\ /" /etc/nginx/conf.d/default.conf
+FROM docker.io/bobra/nginx:1.17-3
+COPY . /static/
+RUN sed -i 's/php.conf/static.conf/' /etc/nginx/nginx.conf
 EOF
 docker push $DOCKER_IMAGE
 printf '[{"name":"nginx","imageUri":"%s"}]' $DOCKER_IMAGE > imagedefinitions.json
