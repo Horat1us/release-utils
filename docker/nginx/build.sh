@@ -19,7 +19,7 @@ set -ex;
 
 DOCKER_IMAGE="${DOCKER_REGISTRY}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
 docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
-FROM docker.io/bobra/nginx:1.17-4
+FROM docker.io/bobra/nginx:1.17-5
 COPY . /static/
 RUN sed -i 's/php.conf/static.conf/' /etc/nginx/nginx.conf
 EOF

@@ -1,6 +1,6 @@
 {
   "name": "@horat1us/release-utils",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "",
   "type": "module",
   "main": "./release.js",
