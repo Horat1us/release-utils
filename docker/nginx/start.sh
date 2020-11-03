@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY-$( (jq '.name' package.json 2>/dev/null || basename $(pwd)) | sed 's/[^a-z\/]//g')}
+IMAGE_REPOSITORY=${IMAGE_REPOSITORY//[^a-zA-Z0-9_.]/}
 
 IMAGE_TAG=${IMAGE_TAG-$(jq -r '.version' ./package.json 2>/dev/null || echo 'test')}
 
