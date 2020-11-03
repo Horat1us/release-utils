@@ -20,6 +20,7 @@
   "homepage": "https://github.com/Horat1us/release-utils#readme",
   "bin": {
     "release": "./release.js",
-    "docker-build-nginx": "./docker/nginx/build.sh"
+    "docker-build-nginx": "./docker/nginx/build.sh",
+    "docker-start-nginx": "./docker/nginx/start.sh"
   }
 }
