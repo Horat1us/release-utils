@@ -6,7 +6,7 @@ IMAGE_TAG=${IMAGE_TAG-$(jq -r '.version' ./package.json 2>/dev/null || echo 'tes
 
 set -ex;
 
-DOCKER_IMAGE="${IMAGE_REPOSITORY}:${IMAGE_TAG}"
+DOCKER_IMAGE="${IMAGE_REPOSITORY//[^a-zA-Z0-9_.]/-}:${IMAGE_TAG}"
 
 docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
 FROM docker.io/bobra/nginx:1.17-5
