@@ -78,20 +78,18 @@ const sendNotification = async () => {
         const buildNumber = variables.CODEBUILD_BUILD_NUMBER;
         const buildUrl = variables.CODEBUILD_BUILD_URL;
         message += `\nAWS [CodeBuild #${buildNumber}](${buildUrl}) ${buildId}`;
-        const host = variables.CODEBUILD_PROJECT_HOST || variables.PROJECT_HOST;
-        if (isPullRequest) {
-            const link = `https://dev.${host}/${variables.CODEBUILD_SOURCE_VERSION}/`;
-            message += `\nAWS [CloudFront Preview ${pullRequest}](${link})`;
-        } else {
-            message += `\nAWS [CloudFront ${host}](https://${host}/) ${host}`;
-        }
+
         return message;
     }
 
     const variables = await getVariables();
     const message = getMessage(variables);
-    const statusCode = await sendMessage(message);
-    console.log(statusCode);
+    await sendMessage(message);
+    process.exit(0);
 }
 
-sendNotification();
+sendNotification()
+    .catch(error => {
+        console.error(error);
+        process.exit(1);
+    });
