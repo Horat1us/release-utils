@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings --experimental-modules --es-module-specifier-resolution=node
+#!/usr/bin/env node
 
 console.log("start script");
 
