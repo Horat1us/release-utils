@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-console.log("start script");
-
 import * as fs from "fs";
 import * as path from "path";
 import * as https from "https";
@@ -12,10 +10,7 @@ const readFile = promisify(fs.readFile);
 const sendNotification = async () => {
 
     const getVariables = async () => {
-        console.log("in getVariables");
-
         const variables = await readFile(path.resolve("./env.json"), "utf8");
-        console.log("VARIABLES: ", variables);
         return JSON.parse(variables);
     }
 
@@ -24,7 +19,6 @@ const sendNotification = async () => {
             || ("description" in response));
 
     async function sendRequest(url) {
-        console.log("before sending request");
         const body = await new Promise((resolve, reject) => {
             const req = https.request(url, (res) => {
                 let data = '';
@@ -57,8 +51,6 @@ const sendNotification = async () => {
      * @param {Object<string, string>} variables
      */
     function getMessage(variables) {
-        console.log("start getMessage");
-
         const [project, buildId] = (variables.CODEBUILD_PROJECT || "").split(":", 2);
         const icon = variables.CODEBUILD_BUILD_SUCCEEDING ? `✅` : "🛑";
 
@@ -111,10 +103,8 @@ const sendNotification = async () => {
         return message;
     }
 
-    console.log("before getVariables");
     const variables = await getVariables();
     const message = getMessage(variables);
-    console.log("MESSAGE: ", message);
     await sendMessage(message);
 }
 
