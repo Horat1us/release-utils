@@ -22,6 +22,7 @@
     "release": "./release.js",
     "docker-build-nginx": "./docker/nginx/build.sh",
     "docker-start-nginx": "./docker/nginx/start.sh",
-    "docker-stop-nginx": "./docker/nginx/stop.sh"
+    "docker-stop-nginx": "./docker/nginx/stop.sh",
+    "telegram-send-deploy-notification": "node ./utils/send-notification.js"
   }
 }
