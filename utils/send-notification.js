@@ -11,6 +11,7 @@ const sendNotification = async () => {
 
     const getVariables = async () => {
         const variables = await readFile(path.resolve("./env.json"), "utf8");
+        console.log("VARIABLES: ", variables);
         return JSON.parse(variables);
     }
 
@@ -87,6 +88,7 @@ const sendNotification = async () => {
 
     const variables = await getVariables();
     const message = getMessage(variables);
+    console.log("MESSAGE: ", message);
     await sendMessage(message);
 }
 
