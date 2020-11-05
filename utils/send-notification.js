@@ -85,11 +85,11 @@ const sendNotification = async () => {
     const variables = await getVariables();
     const message = getMessage(variables);
     await sendMessage(message);
-    process.exit(0);
 }
 
 sendNotification()
+    .then(() => process.exit(0))
     .catch(error => {
         console.error(error);
-        process.exit(1);
+        process.exit(-1);
     });
