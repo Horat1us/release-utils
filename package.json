@@ -1,6 +1,6 @@
 {
   "name": "@horat1us/release-utils",
-  "version": "3.4.1",
+  "version": "3.6.1",
   "description": "",
   "type": "module",
   "main": "./release.js",
@@ -20,6 +20,9 @@
   "homepage": "https://github.com/Horat1us/release-utils#readme",
   "bin": {
     "release": "./release.js",
-    "docker-build-nginx": "./docker/nginx/build.sh"
+    "docker-build-nginx": "./docker/nginx/build.sh",
+    "docker-start-nginx": "./docker/nginx/start.sh",
+    "docker-stop-nginx": "./docker/nginx/stop.sh",
+    "telegram-notify-deploy": "./utils/send-notification.js"
   }
 }
