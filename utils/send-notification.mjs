@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-modules
+#!/usr/bin/env node
 
 console.log("start script");
 
