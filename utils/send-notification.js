@@ -48,35 +48,53 @@ const sendNotification = async () => {
         return response.result;
     }
 
+    /**
+     * @param {Object<string, string>} variables
+     */
     function getMessage(variables) {
-        const [project, buildId] = variables.CODEBUILD_PROJECT.split(":", 2);
+        const [project, buildId] = (variables.CODEBUILD_PROJECT || "").split(":", 2);
         const icon = variables.CODEBUILD_BUILD_SUCCEEDING ? `✅` : "🛑";
 
         let message = `${icon}\t**Project ${project}** `;
-        const isPullRequest = /^pr\/\d+$/.test(variables.CODEBUILD_SOURCE_VERSION);
-        const pullRequest = variables.CODEBUILD_SOURCE_VERSION.split('/')[1];
-        if (isPullRequest) {
-            const action = variables.CODEBUILD_WEBHOOK_EVENT.match(/^PULL_REQUEST_(\w+)$/)[1];
-            message += ` Pull Request #${pullRequest} ${action}`;
-        } else {
+
+        const isPullRequest = /^pr\/\d+$/.test(variables.CODEBUILD_SOURCE_VERSION || "");
+        const pullRequest = typeof variables.CODEBUILD_SOURCE_VERSION === "string"
+            ? variables.CODEBUILD_SOURCE_VERSION.split('/')[1]
+            : "Unknown";
+
+        if (typeof(variables.CODEBUILD_WEBHOOK_EVENT) === "string") {
+            if (isPullRequest) {
+                const action = variables.CODEBUILD_WEBHOOK_EVENT.match(/^PULL_REQUEST_(\w+)$/)[1];
+                message += ` Pull Request #${pullRequest} ${action}`;
+            }
+
             const environment = variables.NODE_ENV || "production";
             message += `${environment} ${variables.CODEBUILD_WEBHOOK_EVENT}`;
         }
+
         const author = variables.CODEBUILD_GIT_AUTHOR;
         const email = variables.CODEBUILD_GIT_AUTHOR_EMAIL;
-        const branch = variables.CODEBUILD_GIT_BRANCH;
         const text = variables.CODEBUILD_GIT_MESSAGE;
+        const branch = variables.CODEBUILD_GIT_BRANCH;
         const commit = variables.CODEBUILD_GIT_SHORT_COMMIT;
-        message += `\n✉️\t${author} <${email}>: ` + '```'+ text+'```';
 
-        const repo = variables.CODEBUILD_SOURCE_REPO_URL.replace(/\.git$/, "");
-        message += `\nGitHub `;
-        if (isPullRequest) {
-            const link = `${repo}/pull/${pullRequest}`;
-            message +=` [Pull Request #${pullRequest}](${link}) \`${branch}/${commit}\``;
-        } else {
-            const link = `${repo}/commit/${variables.CODEBUILD_GIT_COMMIT}`;
-            message += ` [Push ${branch}/${commit}](${link})`;
+        if (author && email && text) {
+            message += `\n✉️\t${author} <${email}>: ` + '```' + text + '```';
+        } else if (text) {
+            message += '\n✉️\t```' + text + '```';
+        }
+
+        if (typeof(variables.CODEBUILD_SOURCE_REPO_URL) === "string") {
+            const repo = variables.CODEBUILD_SOURCE_REPO_URL.replace(/\.git$/, "");
+
+            message += `\nGitHub `;
+            if (isPullRequest) {
+                const link = `${repo}/pull/${pullRequest}`;
+                message +=` [Pull Request #${pullRequest}](${link}) \`${branch}/${commit}\``;
+            } else {
+                const link = `${repo}/commit/${variables.CODEBUILD_GIT_COMMIT}`;
+                message += ` [Push ${branch}/${commit}](${link})`;
+            }
         }
 
         const buildNumber = variables.CODEBUILD_BUILD_NUMBER;
