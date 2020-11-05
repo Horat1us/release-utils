@@ -1,7 +1,10 @@
+#!/usr/bin/env node --no-warnings --experimental-modules --es-module-specifier-resolution=node
+
 import * as fs from "fs";
 import * as path from "path";
 import * as https from "https";
 import {promisify} from "util";
+
 const readFile = promisify(fs.readFile);
 
 const sendNotification = async () => {
