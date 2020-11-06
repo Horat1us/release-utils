@@ -2,7 +2,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import * as https from "https";
+import axios from "axios";
 import {promisify} from "util";
 
 const readFile = promisify(fs.readFile);
@@ -14,96 +14,78 @@ const sendNotification = async () => {
         return JSON.parse(variables);
     }
 
-    const isResponse = (response) => ("ok" in response)
-        && (("result" in response)
-            || ("description" in response));
-
-    async function sendRequest(url) {
-        const body = await new Promise((resolve, reject) => {
-            const req = https.request(url, (res) => {
-                let data = '';
-                res.on('data', (chunk) => data += chunk);
-                res.on('end', () => resolve(data));
-            });
-            req.on('error', reject);
-            req.end();
-        });
-        const response = JSON.parse(body);
-        if (!isResponse(response)) {
-            throw new Error(`Invalid Response: ${body}`);
+    function validateResponse(response) {
+        if (response.data.ok) {
+            return Promise.resolve(response.data.result);
         }
-        return response;
+        console.error(`Telegram Request to "${response.config.url}" failed: ${response.data.description}`);
+        return Promise.reject(new Error(response.data.description));
     }
 
     async function sendMessage(message) {
         const url = new URL(`/bot${encodeURIComponent(process.env.BOT_API_KEY)}/sendMessage`, 'https://api.telegram.org/');
         url.searchParams.append('chat_id', process.env.CHAT_ID);
-        url.searchParams.append('text', message.toString());
         url.searchParams.append("parse_mode", 'Markdown');
-        const response = await sendRequest(url);
-        if (!response.ok) {
-            throw new Error(`Telegram Error #${response.error_code}: ${response.description}`);
-        }
-        return response.result;
+        url.searchParams.append('text', message);
+
+        return await axios.post(url.toString())
+            .then(response => validateResponse(response));
+    }
+
+    /**
+     * @param {string} authToken
+     * @param {string} commitSha
+     * @param {string} repoOwner
+     * @param {string} repoName
+     */
+    const getCommitInfo = async (authToken, commitSha, repoOwner, repoName) => {
+        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits/${commitSha}`;
+
+        const auth = Buffer.from(authToken, "utf-8");
+
+        const config = {
+            headers: {
+                "Authorization": "Basic " + auth.toString("base64"),
+            }
+        };
+
+        return await axios.get(url, config)
+            .then(response => response.data);
     }
 
     /**
      * @param {Object<string, string>} variables
      */
-    function getMessage(variables) {
-        const [project, buildId] = (variables.CODEBUILD_PROJECT || "").split(":", 2);
+    async function getMessage(variables) {
+        const project = (variables.CODEBUILD_PROJECT || "").split(":")[0];
         const icon = variables.CODEBUILD_BUILD_SUCCEEDING ? `✅` : "🛑";
 
         let message = `${icon}\t**Project ${project}** `;
 
-        const pullRequest = typeof variables.CODEBUILD_SOURCE_VERSION === "string" && /^pr\/\d+$/.test(variables.CODEBUILD_SOURCE_VERSION || "")
-            ? variables.CODEBUILD_SOURCE_VERSION.split('/')[1]
-            : undefined;
+        const commitId = variables.CODEBUILD_RESOLVED_SOURCE_VERSION;
+        const githubToken = process.env.GITHUB_AUTH_TOKEN;
+        const repoOwner = process.env.REPO_OWNER;
+        const repoName = process.env.REPO_NAME;
 
-        if (typeof(variables.CODEBUILD_WEBHOOK_EVENT) === "string") {
-            if (pullRequest) {
-                const action = variables.CODEBUILD_WEBHOOK_EVENT.match(/^PULL_REQUEST_(\w+)$/)[1];
-                message += ` Pull Request #${pullRequest} ${action}`;
-            }
+        if (commitId && githubToken && repoOwner && repoName) {
+            const response = await getCommitInfo(githubToken, commitId, repoOwner, repoName);
 
-            const environment = variables.NODE_ENV || "production";
-            message += `${environment} ${variables.CODEBUILD_WEBHOOK_EVENT}`;
-        }
+            const author = response?.author?.login;
+            const url = response?.html_url;
+            const commitMessage = response.commit.message;
 
-        const author = variables.CODEBUILD_GIT_AUTHOR;
-        const email = variables.CODEBUILD_GIT_AUTHOR_EMAIL;
-        const text = variables.CODEBUILD_GIT_MESSAGE;
-        const branch = variables.CODEBUILD_GIT_BRANCH;
-        const commit = variables.CODEBUILD_GIT_SHORT_COMMIT;
-
-        if (author && email && text) {
-            message += `\n✉️\t${author} <${email}>: ` + '```' + text + '```';
-        } else if (text) {
-            message += '\n✉️\t```' + text + '```';
-        }
-
-        if (typeof(variables.CODEBUILD_SOURCE_REPO_URL) === "string") {
-            const repo = variables.CODEBUILD_SOURCE_REPO_URL.replace(/\.git$/, "");
-
-            message += `\nGitHub `;
-            if (pullRequest) {
-                const link = `${repo}/pull/${pullRequest}`;
-                message +=` [Pull Request #${pullRequest}](${link}) \`${branch}/${commit}\``;
-            } else {
-                const link = `${repo}/commit/${variables.CODEBUILD_GIT_COMMIT}`;
-                message += ` [Push ${branch}/${commit}](${link})`;
-            }
+            message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}"`;
         }
 
         const buildNumber = variables.CODEBUILD_BUILD_NUMBER;
         const buildUrl = variables.CODEBUILD_BUILD_URL;
-        message += `\nAWS [CodeBuild #${buildNumber}](${buildUrl}) ${buildId}`;
+        message += `\nAWS [CodeBuild #${buildNumber}](${buildUrl})`;
 
         return message;
     }
 
     const variables = await getVariables();
-    const message = getMessage(variables);
+    const message = await getMessage(variables);
     await sendMessage(message);
 }
 
