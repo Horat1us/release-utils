@@ -23,12 +23,15 @@ const sendNotification = async () => {
     }
 
     async function sendMessage(message) {
-        const url = new URL(`/bot${encodeURIComponent(process.env.BOT_API_KEY)}/sendMessage`, 'https://api.telegram.org/');
-        url.searchParams.append('chat_id', process.env.CHAT_ID);
-        url.searchParams.append("parse_mode", 'Markdown');
-        url.searchParams.append('text', message);
+        const url = `https://api.telegram.org/bot${encodeURIComponent(process.env.BOT_API_KEY)}/sendMessage`;
 
-        return await axios.post(url.toString())
+        return await axios.post(url.toString(), {}, {
+            params: {
+                "chat_id": process.env.CHAT_ID,
+                "parse_mode": "Markdown",
+                "text": message,
+            }
+        })
             .then(response => validateResponse(response));
     }
 
@@ -39,7 +42,8 @@ const sendNotification = async () => {
      * @param {string} repoName
      */
     const getCommitInfo = async (authToken, commitSha, repoOwner, repoName) => {
-        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits/${commitSha}`;
+        const url = "https://api.github.com/repos/" + encodeURIComponent(repoOwner) + "/" + encodeURIComponent(repoName)
+            +"/git/commits/" + encodeURIComponent(commitSha);
 
         const auth = Buffer.from(authToken, "utf-8");
 
@@ -70,9 +74,10 @@ const sendNotification = async () => {
         if (commitId && githubToken && repoOwner && repoName) {
             const response = await getCommitInfo(githubToken, commitId, repoOwner, repoName);
 
-            const author = response?.author?.login;
-            const url = response?.html_url;
-            const commitMessage = response.commit.message;
+
+            const url = response.html_url;
+            const author = response.author.name;
+            const commitMessage = response.message;
 
             message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}"`;
         }
