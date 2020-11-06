@@ -23,6 +23,6 @@
     "docker-build-nginx": "./docker/nginx/build.sh",
     "docker-start-nginx": "./docker/nginx/start.sh",
     "docker-stop-nginx": "./docker/nginx/stop.sh",
-    "telegram-notify-deploy": "./utils/send-notification.js"
+    "telegram-notify-deploy": "utils/send-notification.mjs"
   }
 }
