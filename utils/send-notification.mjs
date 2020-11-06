@@ -56,13 +56,12 @@ const sendNotification = async () => {
 
         let message = `${icon}\t**Project ${project}** `;
 
-        const isPullRequest = /^pr\/\d+$/.test(variables.CODEBUILD_SOURCE_VERSION || "");
-        const pullRequest = typeof variables.CODEBUILD_SOURCE_VERSION === "string"
+        const pullRequest = typeof variables.CODEBUILD_SOURCE_VERSION === "string" && /^pr\/\d+$/.test(variables.CODEBUILD_SOURCE_VERSION || "")
             ? variables.CODEBUILD_SOURCE_VERSION.split('/')[1]
-            : "Unknown";
+            : undefined;
 
         if (typeof(variables.CODEBUILD_WEBHOOK_EVENT) === "string") {
-            if (isPullRequest) {
+            if (pullRequest) {
                 const action = variables.CODEBUILD_WEBHOOK_EVENT.match(/^PULL_REQUEST_(\w+)$/)[1];
                 message += ` Pull Request #${pullRequest} ${action}`;
             }
@@ -87,7 +86,7 @@ const sendNotification = async () => {
             const repo = variables.CODEBUILD_SOURCE_REPO_URL.replace(/\.git$/, "");
 
             message += `\nGitHub `;
-            if (isPullRequest) {
+            if (pullRequest) {
                 const link = `${repo}/pull/${pullRequest}`;
                 message +=` [Pull Request #${pullRequest}](${link}) \`${branch}/${commit}\``;
             } else {
