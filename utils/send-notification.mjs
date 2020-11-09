@@ -3,15 +3,23 @@
 import * as fs from "fs";
 import * as path from "path";
 import axios from "axios";
-import {promisify} from "util";
-
-const readFile = promisify(fs.readFile);
 
 const sendNotification = async () => {
 
     const getVariables = async () => {
-        const variables = await readFile(path.resolve("./env.json"), "utf8");
-        return JSON.parse(variables);
+        const environment = await fs.promises.readFile(path.resolve("./env.json"), "utf8");
+
+        const variables = JSON.parse(environment);
+
+        try {
+            await fs.promises.access(path.resolve("./meta.json"), fs.constants.F_OK)
+
+            const meta = await fs.promises.readFile(path.resolve("./meta.json"), "utf8");
+
+            variables.META_VERSION = JSON.parse(meta).version;
+        } catch (err) {}
+
+        return variables;
     }
 
     function validateResponse(response) {
@@ -70,6 +78,10 @@ const sendNotification = async () => {
         const githubToken = process.env.GITHUB_AUTH_TOKEN;
         const repoOwner = process.env.REPO_OWNER;
         const repoName = process.env.REPO_NAME;
+
+        if (variables.META_VERSION) {
+            message += `\nVersion: ${variables.META_VERSION}`;
+        }
 
         if (commitId && githubToken && repoOwner && repoName) {
             const response = await getCommitInfo(githubToken, commitId, repoOwner, repoName);
