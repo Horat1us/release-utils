@@ -33,12 +33,10 @@ const sendNotification = async () => {
     async function sendMessage(message) {
         const url = `https://api.telegram.org/bot${encodeURIComponent(process.env.BOT_API_KEY)}/sendMessage`;
 
-        return await axios.post(url.toString(), {}, {
-            params: {
-                "chat_id": process.env.CHAT_ID,
-                "parse_mode": "Markdown",
-                "text": message,
-            }
+        return await axios.post(url.toString(), {
+            "chat_id": process.env.CHAT_ID,
+            "parse_mode": "Markdown",
+            "text": message,
         })
             .then(response => validateResponse(response));
     }
