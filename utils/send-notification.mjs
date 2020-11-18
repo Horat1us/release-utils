@@ -47,7 +47,7 @@ const sendNotification = async () => {
      * @param {string} repoOwner
      * @param {string} repoName
      */
-    const getCommitInfo = async (authToken, commitSha, repoOwner, repoName) => {
+    const getCommitInfo = (authToken, commitSha, repoOwner, repoName) => {
         const url = "https://api.github.com/repos/" + encodeURIComponent(repoOwner) + "/" + encodeURIComponent(repoName)
             +"/git/commits/" + encodeURIComponent(commitSha);
 
@@ -59,8 +59,8 @@ const sendNotification = async () => {
             }
         };
 
-        return await axios.get(url, config)
-            .then(response => response.data.replace(/([\\`*_{}[\]()#+-.!|])/g, "\\$1"));
+        return axios.get(url, config)
+            .then(response => response.data);
     }
 
     /**
@@ -85,8 +85,8 @@ const sendNotification = async () => {
             const response = await getCommitInfo(githubToken, commitId, repoOwner, repoName);
 
 
-            const url = response.html_url;
-            const author = response.author.name;
+            const url = response.html_url.replace(/([\\`*_{}[\]()#+-.!|])/g, "\\$1");
+            const author = response.author.name.replace(/([\\`*_{}[\]()#+-.!|])/g, "\\$1");
             const commitMessage = response.message;
 
             message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}"`;
