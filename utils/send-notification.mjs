@@ -60,7 +60,7 @@ const sendNotification = async () => {
         };
 
         return await axios.get(url, config)
-            .then(response => response.data);
+            .then(response => response.data.replace(/([\\`*_{}[\]()#+-.!|])/g, "\\$1"));
     }
 
     /**
