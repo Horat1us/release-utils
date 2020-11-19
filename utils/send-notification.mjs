@@ -85,8 +85,8 @@ const sendNotification = async () => {
             const response = await getCommitInfo(githubToken, commitId, repoOwner, repoName);
 
             const url = response.html_url;
-            const author = response.author.name.replace(/([\\`*_{}[\]()#+-.!|])/g, "\\$1");
-            const commitMessage = response.message.replace(/([\\`*_{}[\]()#+-.!|])/g, "\\$1");
+            const author = response.author.name.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
+            const commitMessage = response.message.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
 
             message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}"`;
         }
