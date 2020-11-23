@@ -64,42 +64,81 @@ const sendNotification = async () => {
     }
 
     /**
-     * @param {Object<string, string>} variables
+     * @param {"aws" | "github"} source
+     * @param {Object<string, string>} [variables]
      */
-    async function getMessage(variables) {
-        const project = (variables.CODEBUILD_PROJECT || "").split(":")[0];
-        const icon = variables.CODEBUILD_BUILD_SUCCEEDING ? `✅` : "🛑";
+    async function getMessage(source, variables) {
+        let project,
+            isSucceed,
+            commitId,
+            githubToken,
+            repoOwner,
+            repoName,
+            url,
+            author,
+            commitMessage,
+            buildNumber,
+            buildUrl;
 
-        let message = `${icon}\t**Project ${project}** `;
 
-        const commitId = variables.CODEBUILD_RESOLVED_SOURCE_VERSION;
-        const githubToken = process.env.GITHUB_AUTH_TOKEN;
-        const repoOwner = process.env.REPO_OWNER;
-        const repoName = process.env.REPO_NAME;
+        switch (source) {
+            case "aws":
+                isSucceed = !!variables.CODEBUILD_BUILD_SUCCEEDING;
+                project = (variables.CODEBUILD_PROJECT || "").split(":")[0];
 
-        if (variables.META_VERSION) {
-            message += `\nVersion: ${variables.META_VERSION}`;
+                commitId = variables.CODEBUILD_RESOLVED_SOURCE_VERSION;
+                githubToken = process.env.GITHUB_AUTH_TOKEN;
+                repoOwner = process.env.REPO_OWNER;
+                repoName = process.env.REPO_NAME;
+                if (commitId && githubToken && repoOwner && repoName) {
+                    const response = await getCommitInfo(githubToken, commitId, repoOwner, repoName);
+
+                    url = response.html_url;
+                    author = response.author.name;
+                    commitMessage = response.message;
+                }
+
+                buildNumber = variables.CODEBUILD_BUILD_NUMBER;
+                buildUrl = variables.CODEBUILD_BUILD_URL;
+                break;
+
+            case "github":
+                isSucceed = !process.env.FAILURE;
+                project = process.env.GITHUB_REPOSITORY;
+                url = process.env.GIT_COMMIT_URL;
+                author = process.env.GIT_COMMIT_AUTHOR;
+                commitMessage = process.env.GIT_COMMIT_MESSAGE;
+                break;
         }
 
-        if (commitId && githubToken && repoOwner && repoName) {
-            const response = await getCommitInfo(githubToken, commitId, repoOwner, repoName);
+        let message = `${isSucceed ? "✅" : "🛑"}\t**Project ${project}**.`;
 
-            const url = response.html_url;
-            const author = response.author.name.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
-            const commitMessage = response.message.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
-
-            message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}"`;
+        if (variables && variables.META_VERSION) {
+            message += `\nVersion: ${variables.META_VERSION}.`;
         }
 
-        const buildNumber = variables.CODEBUILD_BUILD_NUMBER;
-        const buildUrl = variables.CODEBUILD_BUILD_URL;
-        message += `\nAWS [CodeBuild #${buildNumber}](${buildUrl})`;
+        author = author.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
+        commitMessage = commitMessage.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
+        message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}".`;
+
+        if (buildNumber && buildUrl) {
+            message += `\nAWS [CodeBuild #${buildNumber}](${buildUrl}).`;
+        }
 
         return message;
     }
 
+    if (process.env.GIT_COMMIT_MESSAGE
+        && process.env.GIT_COMMIT_AUTHOR
+        && process.env.GIT_COMMIT_URL
+        && process.env.GITHUB_REPOSITORY) {
+
+        const message = await getMessage("github");
+        return await sendMessage(message);
+    }
+
     const variables = await getVariables();
-    const message = await getMessage(variables);
+    const message = await getMessage("aws", variables);
     await sendMessage(message);
 }
 
