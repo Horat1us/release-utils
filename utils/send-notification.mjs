@@ -80,10 +80,9 @@ const sendNotification = async () => {
             buildNumber,
             buildUrl;
 
-
         switch (source) {
             case "aws":
-                isSucceed = !!variables.CODEBUILD_BUILD_SUCCEEDING;
+                isSucceed = !!Number(variables.CODEBUILD_BUILD_SUCCEEDING);
                 project = (variables.CODEBUILD_PROJECT || "").split(":")[0];
 
                 commitId = variables.CODEBUILD_RESOLVED_SOURCE_VERSION;
@@ -103,7 +102,7 @@ const sendNotification = async () => {
                 break;
 
             case "github":
-                isSucceed = !process.env.FAILURE;
+                isSucceed = !Number(process.env.FAILURE);
                 project = process.env.GITHUB_REPOSITORY;
                 url = process.env.GIT_COMMIT_URL;
                 author = process.env.GIT_COMMIT_AUTHOR;
