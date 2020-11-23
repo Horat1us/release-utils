@@ -69,7 +69,7 @@ const sendNotification = async () => {
      */
     async function getMessage(source, variables) {
         let project,
-            icon,
+            isSucceed,
             commitId,
             githubToken,
             repoOwner,
@@ -83,7 +83,7 @@ const sendNotification = async () => {
 
         switch (source) {
             case "aws":
-                icon = variables.CODEBUILD_BUILD_SUCCEEDING ? `✅` : "🛑";
+                isSucceed = !!variables.CODEBUILD_BUILD_SUCCEEDING;
                 project = (variables.CODEBUILD_PROJECT || "").split(":")[0];
 
                 commitId = variables.CODEBUILD_RESOLVED_SOURCE_VERSION;
@@ -103,15 +103,15 @@ const sendNotification = async () => {
                 break;
 
             case "github":
-                icon = "✅";
-                project = process.env.GIT_ACTIONS_PROJECT;
+                isSucceed = !process.env.FAILURE;
+                project = process.env.GITHUB_REPOSITORY;
                 url = process.env.GIT_COMMIT_URL;
                 author = process.env.GIT_COMMIT_AUTHOR;
                 commitMessage = process.env.GIT_COMMIT_MESSAGE;
                 break;
         }
 
-        let message = `${icon}\t**Project ${project}**.`;
+        let message = `${isSucceed ? "✅" : "🛑"}\t**Project ${project}**.`;
 
         if (variables && variables.META_VERSION) {
             message += `\nVersion: ${variables.META_VERSION}.`;
@@ -131,7 +131,7 @@ const sendNotification = async () => {
     if (process.env.GIT_COMMIT_MESSAGE
         && process.env.GIT_COMMIT_AUTHOR
         && process.env.GIT_COMMIT_URL
-        && process.env.GIT_ACTIONS_PROJECT) {
+        && process.env.GITHUB_REPOSITORY) {
 
         const message = await getMessage("github");
         return await sendMessage(message);
