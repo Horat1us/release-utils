@@ -82,7 +82,7 @@ const sendNotification = async () => {
 
         switch (source) {
             case "aws":
-                isSucceed = !!Number(variables.CODEBUILD_BUILD_SUCCEEDING);
+                isSucceed = variables.CODEBUILD_BUILD_SUCCEEDING === "1";
                 project = (variables.CODEBUILD_PROJECT || "").split(":")[0];
 
                 commitId = variables.CODEBUILD_RESOLVED_SOURCE_VERSION;
