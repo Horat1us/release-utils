@@ -116,9 +116,11 @@ const sendNotification = async () => {
             message += `\nVersion: ${variables.META_VERSION}.`;
         }
 
-        author = author.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
-        commitMessage = commitMessage.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
-        message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}".`;
+        if (author && commitMessage) {
+            author = author.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
+            commitMessage = commitMessage.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
+            message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}".`;
+        }
 
         if (buildNumber && buildUrl) {
             message += `\nAWS [CodeBuild #${buildNumber}](${buildUrl}).`;
