@@ -31,7 +31,8 @@ const sendNotification = async () => {
     }
 
     async function sendMessage(message) {
-        const url = `https://api.telegram.org/bot${process.env.BOT_API_KEY}/sendMessage`;
+        const apiKey = process.env.BOT_API_KEY || "";
+        const url = `https://api.telegram.org/bot${apiKey.trim()}/sendMessage`;
 
         return await axios.post(url.toString(), {
             "chat_id": process.env.CHAT_ID,
