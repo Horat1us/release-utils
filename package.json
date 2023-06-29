@@ -23,7 +23,8 @@
     "docker-build-nginx": "./docker/nginx/build.sh",
     "docker-start-nginx": "./docker/nginx/start.sh",
     "docker-stop-nginx": "./docker/nginx/stop.sh",
-    "telegram-notify-deploy": "utils/send-notification.mjs"
+    "telegram-notify-deploy": "utils/send-notification.mjs",
+    "aws-ecs-deploy": "./docker/nginx/stop.sh"
   },
   "dependencies": {
     "axios": "^0.21.4"
