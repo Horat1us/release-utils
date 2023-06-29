@@ -6,9 +6,16 @@ IMAGE_REPOSITORY=${IMAGE_REPOSITORY-$( (jq '.name' package.json 2>/dev/null || b
 if [[ -n $CODEBUILD_BUILD_ID ]]; then
     set -e;
 
-    DOCKER_LOGIN=$(aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION-"eu-central-1"} 2>/dev/null);
-    $DOCKER_LOGIN 2>/dev/null;
-    DOCKER_REGISTRY=$(echo $DOCKER_LOGIN | sed -e 's/.*https:\/\///');
+    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+    DOCKER_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.${AWS_DEFAULT_REGION-"eu-central-1"}.amazonaws.com
+    echo Registry: $DOCKER_REGISTRY
+
+    aws ecr get-login-password \
+        --region ${AWS_DEFAULT_REGION-"eu-central-1"} \
+    | docker login \
+        --username AWS \
+        --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.${AWS_DEFAULT_REGION-"eu-central-1"}.amazonaws.com
+
     IMAGE_TAG=${IMAGE_TAG-${CODEBUILD_BUILD_NUMBER-latest}}
 else
     DOCKER_REGISTRY=docker.io
