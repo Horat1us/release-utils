@@ -27,6 +27,6 @@
     "aws-ecs-deploy": "./aws/ecs/deploy.sh"
   },
   "dependencies": {
-    "axios": "^0.21.4"
+    "axios": "^1.7.9"
   }
 }
