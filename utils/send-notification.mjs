@@ -96,6 +96,9 @@ const sendNotification = async () => {
                     url = response.html_url;
                     author = response.author.name;
                     commitMessage = response.message;
+                } else if (variables.CODEBUILD_GIT_MESSAGE && variables.CODEBUILD_GIT_AUTHOR) {
+                    commitMessage = variables.CODEBUILD_GIT_MESSAGE;
+                    author = variables.CODEBUILD_GIT_AUTHOR;
                 }
 
                 buildNumber = variables.CODEBUILD_BUILD_NUMBER;
@@ -119,8 +122,12 @@ const sendNotification = async () => {
 
         if (author && commitMessage) {
             author = author.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
-            commitMessage = commitMessage.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
-            message += `\n[Commit](${url}). Author: ${author}.\nMessage: "${commitMessage}".`;
+            commitMessage = commitMessage.replace(/([\\`*_{}[\]+!|])/g, "\\$1");
+            message += "\n[Commit]";
+            if (url) {
+                message += `(${url})`;
+            }
+            message += `. Author: ${author}.\nMessage: "${commitMessage}".`;
         }
 
         if (buildNumber && buildUrl) {
