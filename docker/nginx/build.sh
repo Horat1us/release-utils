@@ -33,7 +33,7 @@ docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
 FROM docker.io/bobra/nginx:1.29.1
 COPY . /static/
 RUN sed -i 's/php.conf/static.conf/' /etc/nginx/nginx.conf && \
-    sed -i "s|/index.html|/${FALLBACK_FILE}|g" /etc/nginx/conf.d/static.conf
+    sed -i "s|/index.html|/${FALLBACK_FILE}|g" /etc/nginx/static.conf
 EOF
 docker push $DOCKER_IMAGE
 printf '[{"name":"nginx","imageUri":"%s"}]' $DOCKER_IMAGE > imagedefinitions.json
