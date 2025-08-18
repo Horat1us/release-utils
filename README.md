@@ -1,5 +1,60 @@
 # Release Utils
 
+## Docker Nginx Build Script
+
+The `docker/nginx/build.sh` script builds and pushes a Docker image for serving static files using nginx.
+
+### Installation
+
+This script is available as a bin command when the package is installed:
+
+```bash
+npm install -g @horat1us/release-utils
+```
+
+### Usage
+
+```bash
+# When installed globally via npm
+docker-build-nginx [directory] [fallback_file]
+
+# When running directly
+./docker/nginx/build.sh [directory] [fallback_file]
+```
+
+### Arguments
+
+1. **directory** (optional) - Directory containing files to copy to the image (default: current directory)
+2. **fallback_file** (optional) - Fallback file for client-side routing in nginx config (default: `index.html`)
+
+### Examples
+
+```bash
+# Build from current directory with default index.html fallback
+docker-build-nginx
+
+# Build from dist directory with default index.html fallback
+docker-build-nginx ./dist
+
+# Build from dist directory with custom fallback file
+docker-build-nginx ./dist app.html
+```
+
+### Environment Variables
+
+- `IMAGE_REPOSITORY` - Docker image repository name (default: from package.json name or current directory name)
+- `IMAGE_TAG` - Docker image tag (default: from package.json version or CODEBUILD_BUILD_NUMBER)
+- `CODEBUILD_BUILD_ID` - When set, uses AWS ECR registry and authentication
+- `AWS_DEFAULT_REGION` - AWS region for ECR (default: eu-central-1)
+
+### Features
+
+- Uses `docker.io/bobra/nginx:1.29.1` as base image
+- Copies specified directory contents to `/static/` in the container
+- Configures nginx to use `static.conf` with customizable fallback file for SPAs
+- Automatically detects AWS CodeBuild environment and uses ECR
+- Generates `imagedefinitions.json` for AWS CodeDeploy
+
 ## Telegram-notify
 Поддерживает отправку сообщений 2 вариантами:
 
