@@ -4,7 +4,44 @@ import * as fs from "fs";
 import * as path from "path";
 import axios from "axios";
 
+const parseArguments = () => {
+    const args = process.argv.slice(2);
+    const parsed = {};
+    
+    for (const arg of args) {
+        if (arg.startsWith('--release-type=')) {
+            parsed.releaseType = arg.split('=')[1];
+        }
+    }
+    
+    return parsed;
+};
+
+const validateReleaseType = (releaseType) => {
+    const validTypes = ['android', 'ios', 'web', 'backend', 'internal'];
+    return validTypes.includes(releaseType);
+};
+
+const getReleaseTypeEmoji = (releaseType) => {
+    const emojiMap = {
+        'android': '🤖 [Mobile Android]',
+        'ios': '🍎 [Mobile iOS]',
+        'web': '🌐 [Web]',
+        'backend': '⚙️ [Backend]',
+        'internal': '🔧 [Internal]'
+    };
+    return emojiMap[releaseType] || '';
+};
+
 const sendNotification = async () => {
+    const args = parseArguments();
+    let releaseType = args.releaseType;
+    
+    if (!releaseType) {
+        console.warn('Warning: --release-type argument is available. Usage: --release-type=android|ios|web|backend|internal');
+    } else if (!validateReleaseType(releaseType)) {
+        throw new Error(`Error: Invalid release type "${releaseType}". Valid types: android, ios, web, backend, internal`);
+    }
 
     const getVariables = async () => {
         const environment = await fs.promises.readFile(path.resolve("./env.json"), "utf8");
@@ -67,8 +104,9 @@ const sendNotification = async () => {
     /**
      * @param {"aws" | "github"} source
      * @param {Object<string, string>} [variables]
+     * @param {string} [releaseType]
      */
-    async function getMessage(source, variables) {
+    async function getMessage(source, variables, releaseType) {
         let project,
             isSucceed,
             commitId,
@@ -114,7 +152,8 @@ const sendNotification = async () => {
                 break;
         }
 
-        let message = `${isSucceed ? "✅" : "🛑"}\t**Project ${project}**.`;
+        const releaseTypeEmoji = releaseType ? getReleaseTypeEmoji(releaseType) : '';
+        let message = `${isSucceed ? "✅" : "🛑"}\t**Project ${project}**. ${releaseTypeEmoji}`;
 
         if (variables && variables.META_VERSION) {
             message += `\nVersion: ${variables.META_VERSION}.`;
@@ -142,12 +181,12 @@ const sendNotification = async () => {
         && process.env.GIT_COMMIT_URL
         && process.env.GITHUB_REPOSITORY) {
 
-        const message = await getMessage("github");
+        const message = await getMessage("github", undefined, releaseType);
         return await sendMessage(message);
     }
 
     const variables = await getVariables();
-    const message = await getMessage("aws", variables);
+    const message = await getMessage("aws", variables, releaseType);
     await sendMessage(message);
 }
 
