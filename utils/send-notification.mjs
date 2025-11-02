@@ -73,7 +73,7 @@ const sendNotification = async () => {
 
         return await axios.post(url.toString(), {
             "chat_id": process.env.CHAT_ID,
-            "parse_mode": "Markdown",
+            "parse_mode": "HTML",
             "text": message,
         })
             .then(response => validateResponse(response));
@@ -99,6 +99,20 @@ const sendNotification = async () => {
 
         return axios.get(url, config)
             .then(response => response.data);
+    }
+
+    /**
+     * Escapes HTML special characters to prevent formatting issues
+     * @param {string} text
+     * @returns {string}
+     */
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     /**
@@ -153,24 +167,26 @@ const sendNotification = async () => {
         }
 
         const releaseTypeEmoji = releaseType ? getReleaseTypeEmoji(releaseType) : '';
-        let message = `${isSucceed ? "✅" : "🛑"}\t**Project ${project}**. ${releaseTypeEmoji}`;
+        let message = `${isSucceed ? "✅" : "🛑"}\t<b>Project ${escapeHtml(project)}</b>. ${releaseTypeEmoji}`;
 
         if (variables && variables.META_VERSION) {
             message += `\nVersion: ${variables.META_VERSION}.`;
         }
 
         if (author && commitMessage) {
-            author = author.replace(/([-\\`*_{}[\]+!|])/g, "\\$1");
-            commitMessage = commitMessage.replace(/([\\`*_{}[\]+!|])/g, "\\$1");
-            message += "\n[Commit]";
+            const escapedAuthor = escapeHtml(author);
+            const escapedCommitMessage = escapeHtml(commitMessage);
+
             if (url) {
-                message += `(${url})`;
+                message += `\n<a href="${url}">Commit</a>`;
+            } else {
+                message += "\nCommit";
             }
-            message += `. Author: ${author}.\nMessage: "${commitMessage}".`;
+            message += `. Author: ${escapedAuthor}.\n<blockquote expandable>${escapedCommitMessage}</blockquote>`;
         }
 
         if (buildNumber && buildUrl) {
-            message += `\nAWS [CodeBuild #${buildNumber}](${buildUrl}).`;
+            message += `\nAWS <a href="${buildUrl}">CodeBuild #${buildNumber}</a>.`;
         }
 
         return message;
