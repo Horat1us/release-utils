@@ -4,6 +4,15 @@ import * as fs from "fs";
 import * as path from "path";
 import axios from "axios";
 
+const RELEASE_TYPES = {
+    'android': { emoji: '🤖', label: 'Mobile Android' },
+    'ios': { emoji: '🍎', label: 'Mobile iOS' },
+    'web': { emoji: '🌐', label: 'Web' },
+    'backend': { emoji: '⚙️', label: 'Backend' },
+    'internal': { emoji: '🔧', label: 'Internal' },
+    'telegram': { emoji: '✈️', label: 'Telegram' }
+};
+
 const parseArguments = () => {
     const args = process.argv.slice(2);
     const parsed = {};
@@ -18,29 +27,24 @@ const parseArguments = () => {
 };
 
 const validateReleaseType = (releaseType) => {
-    const validTypes = ['android', 'ios', 'web', 'backend', 'internal'];
-    return validTypes.includes(releaseType);
+    return releaseType in RELEASE_TYPES;
 };
 
 const getReleaseTypeEmoji = (releaseType) => {
-    const emojiMap = {
-        'android': '🤖 [Mobile Android]',
-        'ios': '🍎 [Mobile iOS]',
-        'web': '🌐 [Web]',
-        'backend': '⚙️ [Backend]',
-        'internal': '🔧 [Internal]'
-    };
-    return emojiMap[releaseType] || '';
+    const config = RELEASE_TYPES[releaseType];
+    return config ? `${config.emoji} [${config.label}]` : '';
 };
 
 const sendNotification = async () => {
     const args = parseArguments();
     let releaseType = args.releaseType;
     
+    const validTypesList = Object.keys(RELEASE_TYPES).join('|');
+
     if (!releaseType) {
-        console.warn('Warning: --release-type argument is available. Usage: --release-type=android|ios|web|backend|internal');
+        console.warn(`Warning: --release-type argument is available. Usage: --release-type=${validTypesList}`);
     } else if (!validateReleaseType(releaseType)) {
-        throw new Error(`Error: Invalid release type "${releaseType}". Valid types: android, ios, web, backend, internal`);
+        throw new Error(`Error: Invalid release type "${releaseType}". Valid types: ${Object.keys(RELEASE_TYPES).join(', ')}`);
     }
 
     const getVariables = async () => {
