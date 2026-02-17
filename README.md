@@ -1,5 +1,60 @@
 # Release Utils
 
+### Installation
+
+This scripts are available as a bin command when the package is installed:
+
+```bash
+npm install -g @horat1us/release-utils
+```
+
+## Docker Build Script
+
+The `docker/build.sh` script builds and pushes a Docker image using the project's own Dockerfile.
+
+### Usage
+
+```bash
+# When installed globally via npm
+docker-build [directory] [dockerfile]
+
+# When running directly
+./docker/build.sh [directory] [dockerfile]
+```
+
+### Arguments
+
+1. **directory** (optional) - Build context directory (default: current directory)
+2. **dockerfile** (optional) - Path to the Dockerfile (default: `Dockerfile` inside the build context directory)
+
+### Examples
+
+```bash
+# Build from current directory using ./Dockerfile
+docker-build
+
+# Build from a subdirectory
+docker-build ./app
+
+# Build with a custom Dockerfile path
+docker-build ./app ./app/Dockerfile.prod
+```
+
+### Environment Variables
+
+- `IMAGE_REPOSITORY` - Docker image repository name (default: from package.json name or current directory name)
+- `IMAGE_TAG` - Docker image tag (default: from package.json version or CODEBUILD_BUILD_NUMBER)
+- `CONTAINER_NAME` - Container name used in `imagedefinitions.json` (default: `app`)
+- `CODEBUILD_BUILD_ID` - When set, uses AWS ECR registry and authentication
+- `AWS_DEFAULT_REGION` - AWS region for ECR (default: eu-central-1)
+
+### Features
+
+- Uses the project's own `Dockerfile` (no base image assumptions)
+- Automatically detects AWS CodeBuild environment and uses ECR
+- Pushes to Docker Hub when running outside CodeBuild
+- Generates `imagedefinitions.json` for AWS CodeDeploy
+
 ## Docker Nginx Build Script
 
 The `docker/nginx/build.sh` script builds and pushes a Docker image for serving static files using nginx.
