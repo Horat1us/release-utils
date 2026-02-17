@@ -45,6 +45,7 @@ docker-build ./app ./app/Dockerfile.prod
 - `IMAGE_REPOSITORY` - Docker image repository name (default: from package.json name or current directory name)
 - `IMAGE_TAG` - Docker image tag (default: from package.json version or CODEBUILD_BUILD_NUMBER)
 - `CONTAINER_NAME` - Container name used in `imagedefinitions.json` (default: `app`)
+- `DOCKER_BUILD_ARGS` - Space-separated list of environment variable names to forward as Docker build args (e.g. `"NODE_ENV API_URL"`)
 - `CODEBUILD_BUILD_ID` - When set, uses AWS ECR registry and authentication
 - `AWS_DEFAULT_REGION` - AWS region for ECR (default: eu-central-1)
 

@@ -30,7 +30,12 @@ fi;
 
 set -ex;
 
+BUILD_ARGS=()
+for ARG in $DOCKER_BUILD_ARGS; do
+    BUILD_ARGS+=(--build-arg "$ARG=${!ARG}")
+done
+
 DOCKER_IMAGE="${DOCKER_REGISTRY}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
-docker build -t $DOCKER_IMAGE --rm --compress -f $DOCKERFILE $BUILD_CONTEXT
+docker build -t $DOCKER_IMAGE --rm --compress -f $DOCKERFILE "${BUILD_ARGS[@]}" $BUILD_CONTEXT
 docker push $DOCKER_IMAGE
 printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $DOCKER_IMAGE > imagedefinitions.json
