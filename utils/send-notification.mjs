@@ -37,7 +37,7 @@ const getReleaseTypeEmoji = (releaseType) => {
 
 const sendNotification = async () => {
     const args = parseArguments();
-    let releaseType = args.releaseType;
+    let releaseType = args.releaseType || process.env.RELEASE_TYPE;
     
     const validTypesList = Object.keys(RELEASE_TYPES).join('|');
 

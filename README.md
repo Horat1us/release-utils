@@ -122,6 +122,7 @@ GITHUB_AUTH_TOKEN (токен авторизации к github).
 
 Также в обоих случаях нужны переменные окружения BOT_API_KEY (ключ телеграм бота), CHAT_ID.
 
+Опционально: `RELEASE_TYPE` (android|ios|web|backend|internal|telegram) — тип релиза, добавляет эмодзи-метку к сообщению. Можно передать аргументом `--release-type=<type>` (аргумент имеет приоритет над переменной окружения).
 
 ### Examples
     
@@ -150,6 +151,7 @@ env:
   GIT_COMMIT_MESSAGE: ${{ env.GIT_COMMIT_MESSAGE }}
   GIT_COMMIT_AUTHOR: ${{ env.GIT_COMMIT_AUTHOR }}
   GIT_COMMIT_URL: ${{ env.GIT_COMMIT_URL }}
+  RELEASE_TYPE: web
 run: |
   npm i -g @horat1us/release-utils@3.9.1
   telegram-notify-deploy
