@@ -19,13 +19,13 @@
   },
   "homepage": "https://github.com/Horat1us/release-utils#readme",
   "bin": {
-    "release": "./release.js",
-    "docker-build": "./docker/build.sh",
-    "docker-build-nginx": "./docker/nginx/build.sh",
-    "docker-start-nginx": "./docker/nginx/start.sh",
-    "docker-stop-nginx": "./docker/nginx/stop.sh",
+    "release": "release.js",
+    "docker-build": "docker/build.sh",
+    "docker-build-nginx": "docker/nginx/build.sh",
+    "docker-start-nginx": "docker/nginx/start.sh",
+    "docker-stop-nginx": "docker/nginx/stop.sh",
     "telegram-notify-deploy": "utils/send-notification.mjs",
-    "aws-ecs-deploy": "./aws/ecs/deploy.sh"
+    "aws-ecs-deploy": "aws/ecs/deploy.sh"
   },
   "dependencies": {
     "axios": "^1.7.9"

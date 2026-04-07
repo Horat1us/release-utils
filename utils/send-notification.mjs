@@ -37,15 +37,18 @@ const getReleaseTypeEmoji = (releaseType) => {
 
 const sendNotification = async () => {
     const args = parseArguments();
-    let releaseType = args.releaseType || process.env.RELEASE_TYPE;
-    
+
     const validTypesList = Object.keys(RELEASE_TYPES).join('|');
 
-    if (!releaseType) {
-        console.warn(`Warning: --release-type argument is available. Usage: --release-type=${validTypesList}`);
-    } else if (!validateReleaseType(releaseType)) {
-        throw new Error(`Error: Invalid release type "${releaseType}". Valid types: ${Object.keys(RELEASE_TYPES).join(', ')}`);
-    }
+    const resolveReleaseType = (fromEnvJson) => {
+        const type = fromEnvJson || args.releaseType || process.env.RELEASE_TYPE;
+        if (!type) {
+            console.warn(`Warning: --release-type argument is available. Usage: --release-type=${validTypesList}`);
+        } else if (!validateReleaseType(type)) {
+            throw new Error(`Error: Invalid release type "${type}". Valid types: ${Object.keys(RELEASE_TYPES).join(', ')}`);
+        }
+        return type;
+    };
 
     const getVariables = async () => {
         const environment = await fs.promises.readFile(path.resolve("./env.json"), "utf8");
@@ -201,12 +204,12 @@ const sendNotification = async () => {
         && process.env.GIT_COMMIT_URL
         && process.env.GITHUB_REPOSITORY) {
 
-        const message = await getMessage("github", undefined, releaseType);
+        const message = await getMessage("github", undefined, resolveReleaseType());
         return await sendMessage(message);
     }
 
     const variables = await getVariables();
-    const message = await getMessage("aws", variables, releaseType);
+    const message = await getMessage("aws", variables, resolveReleaseType(variables.RELEASE_TYPE));
     await sendMessage(message);
 }
 
