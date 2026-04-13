@@ -34,12 +34,18 @@ _BASE="${NGINX_BASE_PATH%/}"
 DOCKER_IMAGE="${DOCKER_REGISTRY}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
 
 if [[ -n $_BASE ]]; then
-    # Subdirectory mode: write a custom nginx config for the given base path
+    # Subdirectory mode: write location directives for the given base path.
+    # Notes:
+    #   - static.conf is include-d inside the existing server{} block in nginx.conf,
+    #     so it must NOT contain a server{} wrapper.
+    #   - bobra/nginx is compiled --without-http_rewrite_module, so `return` is
+    #     unavailable. alias /static/ is used instead of root to strip the base
+    #     prefix when resolving file paths.
     docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
 FROM docker.io/bobra/nginx:1.29.1
 COPY . /static/
 RUN sed -i 's/php.conf/static.conf/' /etc/nginx/nginx.conf && \
-    printf 'server {\n  listen 80;\n  root /static;\n\n  location = ${_BASE} { return 301 ${_BASE}/; }\n\n  location ${_BASE}/ {\n    try_files \$uri \$uri/ ${_BASE}/${FALLBACK_FILE};\n  }\n}\n' > /etc/nginx/static.conf
+    printf 'location = ${_BASE} {\n  root /static;\n  try_files /${FALLBACK_FILE} =404;\n}\n\nlocation ${_BASE}/ {\n  alias /static/;\n  try_files \$uri ${_BASE}/${FALLBACK_FILE};\n}\n' > /etc/nginx/static.conf
 EOF
 else
     # Root-serve mode (default)
