@@ -102,12 +102,31 @@ docker-build-nginx ./dist app.html
 - `IMAGE_TAG` - Docker image tag (default: from package.json version or CODEBUILD_BUILD_NUMBER)
 - `CODEBUILD_BUILD_ID` - When set, uses AWS ECR registry and authentication
 - `AWS_DEFAULT_REGION` - AWS region for ECR (default: eu-central-1)
+- `NGINX_BASE_PATH` - Serve the SPA from a subdirectory instead of `/` (e.g. `/app`). Trailing slash is stripped automatically.
+
+### Base Path (subdirectory hosting)
+
+When `NGINX_BASE_PATH` is set, the generated nginx config serves the SPA from that path instead of the root:
+
+- `GET /app` → `301 /app/`
+- `GET /app/<any>` → tries the file, then falls back to `/app/<fallback_file>` (SPA client-side routing)
+
+```bash
+# Serve from /app/
+NGINX_BASE_PATH=/app docker-build-nginx ./dist
+
+# Serve from /app/ with a custom fallback file
+NGINX_BASE_PATH=/app docker-build-nginx ./dist app.html
+```
+
+When `NGINX_BASE_PATH` is unset or empty, the script falls back to the original root-serve behaviour.
 
 ### Features
 
 - Uses `docker.io/bobra/nginx:1.29.1` as base image
 - Copies specified directory contents to `/static/` in the container
 - Configures nginx to use `static.conf` with customizable fallback file for SPAs
+- Supports subdirectory hosting via `NGINX_BASE_PATH` for SPAs deployed under a path prefix
 - Automatically detects AWS CodeBuild environment and uses ECR
 - Generates `imagedefinitions.json` for AWS CodeDeploy
 

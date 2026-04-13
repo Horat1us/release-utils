@@ -28,12 +28,28 @@ fi;
 
 set -ex;
 
+# Strip trailing slash
+_BASE="${NGINX_BASE_PATH%/}"
+
 DOCKER_IMAGE="${DOCKER_REGISTRY}/${IMAGE_REPOSITORY}:${IMAGE_TAG}"
-docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
+
+if [[ -n $_BASE ]]; then
+    # Subdirectory mode: write a custom nginx config for the given base path
+    docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
+FROM docker.io/bobra/nginx:1.29.1
+COPY . /static/
+RUN sed -i 's/php.conf/static.conf/' /etc/nginx/nginx.conf && \
+    printf 'server {\n  listen 80;\n  root /static;\n\n  location = ${_BASE} { return 301 ${_BASE}/; }\n\n  location ${_BASE}/ {\n    try_files \$uri \$uri/ ${_BASE}/${FALLBACK_FILE};\n  }\n}\n' > /etc/nginx/static.conf
+EOF
+else
+    # Root-serve mode (default)
+    docker build -t $DOCKER_IMAGE --rm --compress -f- ${1-$(pwd)} <<EOF
 FROM docker.io/bobra/nginx:1.29.1
 COPY . /static/
 RUN sed -i 's/php.conf/static.conf/' /etc/nginx/nginx.conf && \
     sed -i "s|/index.html|/${FALLBACK_FILE}|g" /etc/nginx/static.conf
 EOF
+fi
+
 docker push $DOCKER_IMAGE
 printf '[{"name":"nginx","imageUri":"%s"}]' $DOCKER_IMAGE > imagedefinitions.json
