@@ -45,7 +45,7 @@ if [[ -n $_BASE ]]; then
 FROM docker.io/bobra/nginx:1.29.1
 COPY . /static/
 RUN sed -i 's/php.conf/static.conf/' /etc/nginx/nginx.conf && \
-    printf 'location = ${_BASE} {\n  root /static;\n  try_files /${FALLBACK_FILE} =404;\n}\n\nlocation ${_BASE}/ {\n  alias /static/;\n  try_files \$uri ${_BASE}/${FALLBACK_FILE};\n}\n' > /etc/nginx/static.conf
+    printf 'include /etc/nginx/mime.types;\ndefault_type application/octet-stream;\n\nlocation = ${_BASE} {\n  root /static;\n  try_files /${FALLBACK_FILE} =404;\n}\n\nlocation ~* ^${_BASE}/.+\.(map|log)$ {\n  deny all;\n}\n\nlocation ~* ^${_BASE}/(.+\.(jpg|jpeg|gif|png|webp|avif|ico|svg|css|js|woff|woff2|ttf|eot))$ {\n  alias /static/\$1;\n  access_log off;\n  expires 1y;\n  add_header Cache-Control "public, immutable";\n  add_header Vary "Accept-Encoding";\n  gzip_static on;\n  brotli_static on;\n}\n\nlocation ${_BASE}/ {\n  alias /static/;\n  try_files \$uri ${_BASE}/${FALLBACK_FILE};\n}\n\nclient_max_body_size 1m;\n' > /etc/nginx/static.conf
 EOF
 else
     # Root-serve mode (default)
