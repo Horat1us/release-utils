@@ -143,6 +143,8 @@ GITHUB_AUTH_TOKEN (токен авторизации к github).
 
 Опционально: `RELEASE_TYPE` (android|ios|web|backend|internal|telegram) — тип релиза, добавляет эмодзи-метку к сообщению. Приоритет: значение из `env.json` → аргумент `--release-type=<type>` → переменная окружения `RELEASE_TYPE`.
 
+Опционально: `RELEASE_ENVIRONMENT` (dev|test|staging|production) — среда развёртывания, добавляет отдельную строку `Environment: <emoji> <label>.` перед версией. Приоритет: значение из `env.json` → аргумент `--environment=<env>` → переменная окружения `RELEASE_ENVIRONMENT`.
+
 ### Examples
     
 #### AWS CodeBuild
@@ -171,6 +173,7 @@ env:
   GIT_COMMIT_AUTHOR: ${{ env.GIT_COMMIT_AUTHOR }}
   GIT_COMMIT_URL: ${{ env.GIT_COMMIT_URL }}
   RELEASE_TYPE: web
+  RELEASE_ENVIRONMENT: production
 run: |
   npm i -g @horat1us/release-utils@3.9.1
   telegram-notify-deploy

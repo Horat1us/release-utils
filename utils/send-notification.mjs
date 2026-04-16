@@ -13,6 +13,13 @@ const RELEASE_TYPES = {
     'telegram': { emoji: '✈️', label: 'Telegram' }
 };
 
+const ENVIRONMENTS = {
+    'dev': { emoji: '🛠️', label: 'Development' },
+    'test': { emoji: '🧪', label: 'Test' },
+    'staging': { emoji: '🔬', label: 'Staging' },
+    'production': { emoji: '🚀', label: 'Production' }
+};
+
 const parseArguments = () => {
     const args = process.argv.slice(2);
     const parsed = {};
@@ -20,6 +27,9 @@ const parseArguments = () => {
     for (const arg of args) {
         if (arg.startsWith('--release-type=')) {
             parsed.releaseType = arg.split('=')[1];
+        }
+        if (arg.startsWith('--environment=')) {
+            parsed.environment = arg.split('=')[1];
         }
     }
     
@@ -35,6 +45,15 @@ const getReleaseTypeEmoji = (releaseType) => {
     return config ? `${config.emoji} [${config.label}]` : '';
 };
 
+const validateEnvironment = (environment) => {
+    return environment in ENVIRONMENTS;
+};
+
+const getEnvironmentLabel = (environment) => {
+    const config = ENVIRONMENTS[environment];
+    return config ? `${config.emoji} ${config.label}` : '';
+};
+
 const sendNotification = async () => {
     const args = parseArguments();
 
@@ -48,6 +67,14 @@ const sendNotification = async () => {
             throw new Error(`Error: Invalid release type "${type}". Valid types: ${Object.keys(RELEASE_TYPES).join(', ')}`);
         }
         return type;
+    };
+
+    const resolveEnvironment = (fromEnvJson) => {
+        const env = fromEnvJson || args.environment || process.env.RELEASE_ENVIRONMENT;
+        if (env && !validateEnvironment(env)) {
+            throw new Error(`Error: Invalid environment "${env}". Valid environments: ${Object.keys(ENVIRONMENTS).join(', ')}`);
+        }
+        return env;
     };
 
     const getVariables = async () => {
@@ -126,8 +153,9 @@ const sendNotification = async () => {
      * @param {"aws" | "github"} source
      * @param {Object<string, string>} [variables]
      * @param {string} [releaseType]
+     * @param {string} [environment]
      */
-    async function getMessage(source, variables, releaseType) {
+    async function getMessage(source, variables, releaseType, environment) {
         let project,
             isSucceed,
             commitId,
@@ -176,6 +204,10 @@ const sendNotification = async () => {
         const releaseTypeEmoji = releaseType ? getReleaseTypeEmoji(releaseType) : '';
         let message = `${isSucceed ? "✅" : "🛑"}\t<b>Project ${escapeHtml(project)}</b>. ${releaseTypeEmoji}`;
 
+        if (environment) {
+            message += `\nEnvironment: ${getEnvironmentLabel(environment)}.`;
+        }
+
         if (variables && variables.META_VERSION) {
             message += `\nVersion: ${variables.META_VERSION}.`;
         }
@@ -204,12 +236,12 @@ const sendNotification = async () => {
         && process.env.GIT_COMMIT_URL
         && process.env.GITHUB_REPOSITORY) {
 
-        const message = await getMessage("github", undefined, resolveReleaseType());
+        const message = await getMessage("github", undefined, resolveReleaseType(), resolveEnvironment());
         return await sendMessage(message);
     }
 
     const variables = await getVariables();
-    const message = await getMessage("aws", variables, resolveReleaseType(variables.RELEASE_TYPE));
+    const message = await getMessage("aws", variables, resolveReleaseType(variables.RELEASE_TYPE), resolveEnvironment(variables.RELEASE_ENVIRONMENT));
     await sendMessage(message);
 }
 
