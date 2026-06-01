@@ -130,10 +130,51 @@ When `NGINX_BASE_PATH` is unset or empty, the script falls back to the original 
 - Automatically detects AWS CodeBuild environment and uses ECR
 - Generates `imagedefinitions.json` for AWS CodeDeploy
 
+## CodeBuild Export Git Env
+
+The `aws/codebuild/export-git-env.sh` script resolves Git context variables that AWS CodeBuild does not expose natively (branch name, commit message, author, tag, etc.) and prints all environment variables as a JSON object to stdout.
+
+### Usage
+
+```bash
+# When installed globally via npm
+codebuild-export-git-env > env.json
+
+# When running directly
+./aws/codebuild/export-git-env.sh > env.json
+```
+
+### Exported Variables
+
+| Variable | Description |
+|---|---|
+| `CI` | Always `true` |
+| `CODEBUILD` | Always `true` |
+| `CODEBUILD_ACCOUNT_ID` | AWS account ID from `aws sts get-caller-identity` |
+| `CODEBUILD_GIT_BRANCH` | Current branch name; falls back to remote tracking branch on detached HEAD |
+| `CODEBUILD_GIT_MESSAGE` | Last commit message |
+| `CODEBUILD_GIT_AUTHOR` | Last commit author name |
+| `CODEBUILD_GIT_AUTHOR_EMAIL` | Last commit author email |
+| `CODEBUILD_GIT_COMMIT` | Full commit SHA |
+| `CODEBUILD_GIT_SHORT_COMMIT` | Short commit SHA |
+| `CODEBUILD_GIT_TAG` | Exact tag on current commit (empty if none) |
+| `CODEBUILD_PULL_REQUEST` | PR number if branch matches `pr-<number>`, otherwise `false` |
+| `CODEBUILD_PROJECT` | Project name derived from `CODEBUILD_BUILD_ID` |
+| `CODEBUILD_BUILD_URL` | Direct link to this build in the AWS Console |
+
+### Example (buildspec.yml)
+
+```yaml
+phases:
+  build:
+    commands:
+      - codebuild-export-git-env > env.json
+```
+
 ## Telegram-notify
 Поддерживает отправку сообщений 2 вариантами:
 
-1. Когда в текущей папке есть файл env.json и в нем лежат все переменные, полученные путем выполнения файла https://gist.githubusercontent.com/Horat1us/8ffc5814b0f3c5fbf95370ac8b778455/raw/1b234ab19ca514caa8e098736493b3795781203e/codebuild-git-env.sh
+1. Когда в текущей папке есть файл env.json и в нем лежат все переменные, полученные путем выполнения команды `codebuild-export-git-env`
 на стадии билда проекта на AWS Codebuild. А также существуют переменные REPO_OWNER (владелец репозитория) и
 GITHUB_AUTH_TOKEN (токен авторизации к github).
 2. При наличии переменных окружения таких как: GIT_COMMIT_MESSAGE, GIT_COMMIT_AUTHOR, GIT_COMMIT_URL, GITHUB_REPOSITORY
@@ -149,11 +190,8 @@ GITHUB_AUTH_TOKEN (токен авторизации к github).
     
 #### AWS CodeBuild
 ```bash
-curl -O https://gist.githubusercontent.com/Horat1us/8ffc5814b0f3c5fbf95370ac8b778455/raw/1b234ab19ca514caa8e098736493b3795781203e/codebuild-git-env.sh
-chmod +x ./codebuild-git-env.sh
-./codebuild-git-env.sh > ./env.json
+codebuild-export-git-env > ./env.json
 if [[ "$CODEBUILD_BUILD_SUCCEEDING" == "0" ]]; then
-  npm i -g @horat1us/release-utils@3.9.4;
   telegram-notify-deploy;
 fi;
 ```
