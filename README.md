@@ -123,7 +123,7 @@ When `NGINX_BASE_PATH` is unset or empty, the script falls back to the original 
 
 ### Features
 
-- Uses `docker.io/bobra/nginx:1.31.1` as base image
+- Uses `docker.io/bobra/nginx:1.31.4` as base image
 - Copies specified directory contents to `/static/` in the container
 - Configures nginx to use `static.conf` with customizable fallback file for SPAs
 - Supports subdirectory hosting via `NGINX_BASE_PATH` for SPAs deployed under a path prefix
