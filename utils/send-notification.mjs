@@ -214,7 +214,7 @@ const sendNotification = async () => {
 
         if (author && commitMessage) {
             const escapedAuthor = escapeHtml(author);
-            const escapedCommitMessage = escapeHtml(commitMessage.split("\n", 1)[0].slice(0, 3000));
+            const escapedCommitMessage = escapeHtml(commitMessage.slice(0, 3000));
 
             if (url) {
                 message += `\n<a href="${url}">Commit</a>`;
