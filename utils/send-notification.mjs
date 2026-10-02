@@ -214,7 +214,10 @@ const sendNotification = async () => {
 
         if (author && commitMessage) {
             const escapedAuthor = escapeHtml(author);
-            const escapedCommitMessage = escapeHtml(commitMessage.slice(0, 3000));
+            const shortenedCommitMessage = commitMessage.length > 3000
+                ? `${commitMessage.slice(0, 2999).replace(/[\uD800-\uDBFF]$/, '')}…`
+                : commitMessage;
+            const escapedCommitMessage = escapeHtml(shortenedCommitMessage);
 
             if (url) {
                 message += `\n<a href="${url}">Commit</a>`;
